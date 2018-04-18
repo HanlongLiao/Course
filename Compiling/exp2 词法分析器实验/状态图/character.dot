@@ -1,0 +1,9 @@
+digraph{
+    rankdir = LR
+    node [shape = circle]
+
+    "  0  " -> 101 [label = "_, alpha"]
+    101 -> 101 [label = "_, alpha, digit"]
+    101 -> 102 [label = "others"]
+    102 [shape = doublecircle]
+}

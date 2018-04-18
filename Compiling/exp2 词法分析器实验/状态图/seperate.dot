@@ -1,0 +1,7 @@
+digraph{
+    rankdir = LR
+    node [shape = circle]
+
+    "  0  " -> 401 [label = "{, }, ,, ;"]
+    401 [shape = doublecircle]
+}
