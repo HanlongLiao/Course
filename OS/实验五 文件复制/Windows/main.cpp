@@ -92,15 +92,13 @@ static void DirWalk(pDIRWALK DW)
 	HANDLE hFind = FindFirstFile(_TEXT("*.*"), &DW->FindData);
 	while (DW->FindNext)
 	{
-		if ((lstrcmp(DW->FindData.cFileName, _TEXT(".")) == 0) ||
-			(lstrcmp(DW->FindData.cFileName, _TEXT("..")) == 0));
 		//是父路径或当前路径  取下一个
+		if ((lstrcmp(DW->FindData.cFileName, _TEXT(".")) == 0) ||
+			(lstrcmp(DW->FindData.cFileName, _TEXT("..")) == 0));		
 		//判断当前是否是文件夹
 		else if (DW->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
 			_stprintf_s(DW->DesPath, _TEXT("%s\\%s"), DW->DesPath, 	DW->FindData.cFileName);//目标文件名
-			//swprintf(DW->DesPath, L"%s\\%s", DW->DesPath, DW->FindData.cFileName);
-			//swprintf(DW->DesPath, "%s\\%s", DW->DesPath, DW->FindData.cFileName);
 			printf("%*sCreateDirectory %s\n", 4 * DW->depth, "", DW->DesPath);
 			CreateDirectory(DW->DesPath, NULL);			//创建文件夹
 			//切换当前的进程的当前工作目录	
@@ -114,7 +112,6 @@ static void DirWalk(pDIRWALK DW)
 		else
 		{
 			_stprintf(DW->DestFullName, _TEXT("%s\\%s"), DW->DesPath, DW->FindData.cFileName);
-			//swprintf(DW->DestFullName, L"%s\\%s", DW->DesPath, DW->FindData.cFileName);
 			printf("%*sCopyFile %s\n", 4 * DW->depth, "",DW->FindData.cFileName);
 			myCopyFile(DW->FindData.cFileName, DW->DestFullName);		//复制文件函数
 		} 
