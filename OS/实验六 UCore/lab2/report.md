@@ -1,5 +1,10 @@
 # __UCORE lab2 物理内存管理__
 
+&emsp;&emsp;`根据ucore实验报告要求，本实验报告采用markdown格式，在转化为pdf时，其中的网络链接与文本格式均相对于原文出现一定程度的改变，请查看markdown格式实验报告Github链接：`  
+
+[Ucore 实验报告Github](https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore)  
+[查看更多OS实验报告](https://github.com/HanlongLiao/Course/tree/master/OS)
+
 ## __一、实验目的__
 
 * 理解基于段页式内存地址的转换机制
@@ -136,10 +141,11 @@ struct Page {
 ，主要是我们可以设计不同的页分配算法（best fit, buddy
 system等），那么这个PG\_property就有不同的含义了。
 
-关于Page结构体在UCORE中实现的更多的说明，请参考：[Page在UCORE中具体实现](./picturefig/Page.md)
+关于Page结构体在UCORE中实现的更多的说明，请参考：[**Page在UCORE中具体实现**](./picturefig/Page.md)
 
 #### __3.1.3 物理内存分配算法__
-&emsp;&emsp;物理内存分配是大家在理论课中学习的比较扎实的部分，内容也不止firstfit一种算法，在UCORE中，主要是使用了first算法来实现。这部分内容将在练习中结合具体的代码进行说明，关于更多的物理内存分配算法[内存管理算法介绍](https://blog.csdn.net/topasstem8/article/details/42558233)
+&emsp;&emsp;物理内存分配是大家在理论课中学习的比较扎实的部分，内容也不止firstfit一种算法，在UCORE中，主要是使用了first算法来实现。这部分内容将在练习中结合具体的代码进行说明，关于更多的物理内存分配算法
+[**内存管理算法介绍**](https://blog.csdn.net/topasstem8/article/details/42558233)
 
 #### __3.1.4 分页机制__
 
@@ -213,8 +219,8 @@ free_list is used to record the free mem blocks. nr_free is the total number for
  
 &emsp;&emsp;default\_init\_memmap函数将根据每个物理页帧的情况来建立空闲页链表，且空闲页块应该是根据地址高低形成一个有序链表。
 
-&emsp;&emsp;首先查看[注释](./picturefig/lab2_default_init_memmap.md),
-根据注释查看变相关[定义](./picturefig/lab2_default_init_memmap相关定义.md)，并根据定义来修改代码：  
+&emsp;&emsp;首先查看[**注释**](./picturefig/lab2_default_init_memmap.md),
+根据注释查看变相关[**定义**](./picturefig/lab2_default_init_memmap相关定义.md)，并根据定义来修改代码：  
  
 ```c
 static void
@@ -248,7 +254,7 @@ default_init_memmap(struct Page *base, size_t n) {
 需要修改的代码如下：
 
 
-此时查看[注释](./picturefig/lab2_default_alloc_pages.md) ,并且根据注释查看相关的[定义](./picturefig/lab2_default_alloc_pages相关定义.md)
+此时查看[**注释**](./picturefig/lab2_default_alloc_pages.md) ,并且根据注释查看相关的[**定义**](./picturefig/lab2_default_alloc_pages相关定义.md)
 
 根据注释修改代码如下  
 ```c
@@ -296,7 +302,7 @@ default_free_pages
 - 改变被释放页的标志位，以及头部的计数器  
 - 尝试在free_list 中向高地址后者低地址合并 
 
-首先查看[注释](./picturefig/lab2_default_free_pages.md),并且根据注释，来查看相关[定义](./picturefig/lab2_default_free_pages相关定义.md)。  
+首先查看[**注释**](./picturefig/lab2_default_free_pages.md),并且根据注释，来查看相关[**定义**](./picturefig/lab2_default_free_pages相关定义.md)。  
 修改代码如下：
 ```C
 static void
@@ -378,7 +384,7 @@ default_free_pages(struct Page *base, size_t n) {
 - PTE_P 0x001 表示物理内存页存在
 - PTE_W 0x002 表示物理内存页内容可写
 - PTE_U 0x004 表示可以读取对应地址的物理内存页内容
-查看相求的[注释](./picturefig/lab2_2_anno_Page.md) 
+查看相求的[**注释**](./picturefig/lab2_2_anno_Page.md) 
 ,根据相应的注释与定义，填写代码。
 ```C
 

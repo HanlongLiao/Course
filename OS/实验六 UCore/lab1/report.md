@@ -1,4 +1,10 @@
-# __UCORE 实验lab1 系统软件的启动过程__
+# __UCORE lab1 系统软件的启动过程__
+
+&emsp;&emsp;`根据ucore实验报告要求，本实验报告采用markdown格式，在转化为pdf时，其中的网络链接与文本格式均相对于原文出现一定程度的改变，请查看markdown格式实验报告Github链接：`  
+
+[Ucore 实验报告Github](https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore)  
+[查看更多OS实验报告](https://github.com/HanlongLiao/Course/tree/master/OS)
+
 
 ## __一、实验目的__
 
@@ -36,7 +42,7 @@
 
 &emsp;&emsp;计算机加电后，一般不直接执行操作系统，而是执行系统初始化软件完成基本IO初始化和引导加载功能。简单地说，系统初始化软件就是在操作系统内核运行之前运行的一段小软件。通过这段小软件，我们可以初始化硬件设备、建立系统的内存空间映射图，从而将系统的软硬件环境带到一个合适的状态，以便为最终调用操作系统内核准备好正确的环境。最终引导加载程序把操作系统内核映像加载到RAM中，并将系统控制权传递给它。
 
-&emsp;&emsp;对于绝大多数计算机系统而言，操作系统和应用软件是存放在磁盘（硬盘/软盘）、光盘、EPROM、ROM、Flash等可在掉电后继续保存数据的存储介质上。计算机启动后，CPU一开始会到一个特定的地址开始执行指令，这个特定的地址存放了系统初始化软件，负责完成计算机基本的IO初始化，这是系统加电后运行的第一段软件代码。对于Intel 80386的体系结构而言，PC机中的系统初始化软件由BIOS \(Basic Input Output System，即基本输入/输出系统，其本质是一个固化在主板Flash/CMOS上的软件\)和位于软盘/硬盘引导扇区中的OS Boot Loader（在ucore中的bootasm.S和bootmain.c）一起组成。BIOS实际上是被固化在计算机ROM（只读存储器）芯片上的一个特殊的软件，为上层软件提供最底层的、最直接的硬件控制与支持。更形象地说，BIOS就是PC计算机硬件与上层软件程序之间的一个"桥梁"，负责访问和控制硬件。Intel的CPU具有很好的向后兼容性。在16位的8086 CPU时代，内存限制在1MB范围内，且BIOS的代码固化在EPROM中。在基于Intel的8086 CPU的PC机中的EPROM被编址在1ＭB内存地址空间的最高64KB中。PC加电后，CS寄存器初始化为0xF000，IP寄存器初始化为0xFFF0，所以CPU要执行的第一条指令的地址为CS:IP=0xF000:0XFFF0（**Segment:Offset 表示**）=0xFFFF0（**Linear表示**）。这个地址位于被固化EPROM中，指令是一个长跳转指令`JMP   F000:E05B`。这样就开启了BIOS的执行过程。
+&emsp;&emsp;对于绝大多数计算机系统而言，操作系统和应用软件是存放在磁盘（硬盘/软盘）、光盘、EPROM、ROM、Flash等可在掉电后继续保存数据的存储介质上。计算机启动后，CPU一开始会到一个特定的地址开始执行指令，这个特定的地址存放了系统初始化软件，负责完成计算机基本的IO初始化，这是系统加电后运行的第一段软件代码。对于Intel 80386的体系结构而言，PC机中的系统初始化软件由BIOS \(Basic Input Output System，即基本输入/输出系统，其本质是一个固化在主板Flash/CMOS上的软件\)和位于软盘/硬盘引导扇区中的OS Boot Loader（在ucore中的bootasm.S和bootmain.c）一起组成。BIOS实际上是被固化在计算机ROM（只读存储器）芯片上的一个特殊的软件，为上层软件提供最底层的、最直接的硬件控制与支持。更形象地说，BIOS就是PC计算机硬件与上层软件程序之间的一个"桥梁"，负责访问和控制硬件。Intel的CPU具有很好的向后兼容性。在16位的8086 CPU时代，内存限制在1MB范围内，且BIOS的代码固化在EPROM中。在基于Intel的8086 CPU的PC机中的EPROM被编址在1ＭB内存地址空间的最高64KB中。PC加电后，CS寄存器初始化为0xF000，IP寄存器初始化为0xFFF0，所以CPU要执行的第一条指令的地址为CS:IP=0xF000:0XFFF0（Segment:Offset 表示）=0xFFFF0（Linear表示）。这个地址位于被固化EPROM中，指令是一个长跳转指令JMP   F000:E05B。这样就开启了BIOS的执行过程。
 
 ![图3-1-1加载BIOS过程](./picture/lab1_0_1.png)
 
@@ -62,7 +68,7 @@ BIOS将通过读取硬盘主引导扇区到内存，并转跳到对应内存中�
 
 &emsp;&emsp;bootloader让CPU进入保护模式后，下一步的工作就是从硬盘上加载并运行OS。考虑到实现的简单性，bootloader的访问硬盘都是LBA模式的PIO（Program IO）方式，即所有的IO操作是通过CPU访问硬盘的IO地址寄存器完成。
 
-&emsp;&emsp;一般主板有2个IDE通道，每个通道可以接2个IDE硬盘。访问第一个硬盘的扇区可设置IO地址寄存器0x1f0-0x1f7实现的，具体参数见下表。一般第一个IDE通道通过访问IO地址0x1f0-0x1f7来实现，第二个IDE通道通过访问0x170-0x17f实现。每个通道的主从盘的选择通过第6个IO偏移地址寄存器来设置。具体的对应关系请点击[IO对应关系](./picture/sectionAddr.md)
+&emsp;&emsp;一般主板有2个IDE通道，每个通道可以接2个IDE硬盘。访问第一个硬盘的扇区可设置IO地址寄存器0x1f0-0x1f7实现的，具体参数见下表。一般第一个IDE通道通过访问IO地址0x1f0-0x1f7来实现，第二个IDE通道通过访问0x170-0x17f实现。每个通道的主从盘的选择通过第6个IO偏移地址寄存器来设置。具体的对应关系请点击[**IO对应关系**](./picture/sectionAddr.md)
 
 &emsp;&emsp;当前 硬盘数据是储存到硬盘扇区中，一个扇区大小为512字节。读一个扇区的流程（boot/bootmain.c中的readsect函数实现）大致如下：
 
@@ -77,7 +83,7 @@ ELF(Executable and linking format)文件格式是Linux系统下的一种常用�
 - 用于连接的可重定位文件(relocatable file)，可与其它目标文件一起创建可执行文件和共享目标文件。
 - 共享目标文件(shared object file),连接器可将它与其它可重定位文件和共享目标文件连接成其它的目标文件，动态连接器又可将它与可执行文件和其它共享目标文件结合起来创建一个进程映像。
 
-&emsp;&emsp;可执行文件的 ELF header在文件开始处描述了整个文件的组织，在ucore的实验代码中包含在elf.h中，关于ELF的更多信息，点击[ELF说明](./picture/ELF.md)
+&emsp;&emsp;可执行文件的 ELF header在文件开始处描述了整个文件的组织，在ucore的实验代码中包含在elf.h中，关于ELF的更多信息，点击[**ELF说明**](./picture/ELF.md)
 
 #### __3.1.3 操作系统启动过程__
 
@@ -104,20 +110,19 @@ ELF(Executable and linking format)文件格式是Linux系统下的一种常用�
  |上一层[ebp]| <-------- [ebp]
  |局部变量		|  低位地址
 ```
-&emsp;&emsp;关于中断与异常的相关内容，可以参考《微机原理与接口技术》（王娟等编，清华大学出版社）第七章，说明地较为详细。在80386中，标志寄存器中的D9位IF是中断允许标志。当IF = 1 时，允许CPU接收外部中断请求，此时是"开中断"状态；当IF位 = 0时，则屏蔽外部中断请求，此时为"关中断"。关于本实验中关于中断的描述，请点击[中断与异常](./picture/interrupter.md)
+&emsp;&emsp;关于中断与异常的相关内容，可以参考《微机原理与接口技术》（王娟等编，清华大学出版社）第七章，说明地较为详细。在80386中，标志寄存器中的D9位IF是中断允许标志。当IF = 1 时，允许CPU接收外部中断请求，此时是"开中断"状态；当IF位 = 0时，则屏蔽外部中断请求，此时为"关中断"。关于本实验中关于中断的描述，请点击[**中断与异常**](./picture/interrupter.md)
 
 ### __3.2 实验内容与步骤__
 
 #### __3.2.1 练习1__
 
-_理解通过make生成执行文件的过程。（要求在报告中写出对下述问题的回答)_
-
-_列出本实验各练习中对应的OS原理的知识点，并说明本实验中的实现部分如何对应和体现了原理中的基本概念和关键知识点。_
+>_理解通过make生成执行文件的过程。（要求在报告中写出对下述问题的回答)_
+>_列出本实验各练习中对应的OS原理的知识点，并说明本实验中的实现部分如何对应和体现了原理中的基本概念和关键知识点。_
 _在此练习中，大家需要通过静态分析代码来了解:_  
 _1. 操作系统镜像文件ucore.img是如何一步一步生成的？(需要比较详细地解释Makefile中每一条相关命令和命令参数的含义，以及说明命令导致的结果)_  
 _2. 一个被系统认为是符合规范的硬盘主引导扇区的特征是什么?_
 
-&emsp;&emsp;练习1,需要理解ucore.img是如何一步一步生成的，则就要阅读makefile文件，工程的makefile文件非常复杂，需要读懂非常困难,需要非常熟悉makefile语法。我在网上看到了一篇博客写得非常详细的：[ucore实验lab1练习1](https://www.shiyanlou.com/courses/reports/1054572)  
+&emsp;&emsp;练习1,需要理解ucore.img是如何一步一步生成的，则就要阅读makefile文件，工程的makefile文件非常复杂，需要读懂非常困难,需要非常熟悉makefile语法。我在网上看到了一篇博客写得非常详细的：[**ucore实验lab1练习1**](https://www.shiyanlou.com/courses/reports/1054572)  
 在根目录打开makefile文件中，首先能够找到生成ucore.img的部分
 
 这一部分的内容大概是：
@@ -173,17 +178,17 @@ $(bootblock): $(call toobj,$(bootfiles)) | $(call totarget,sign)
 
 #### __3.2.2 练习2__
 
-_为了熟悉使用qemu和gdb进行的调试工作，我们进行如下的小练习：_
-
-_1. 从CPU加电后执行的第一条指令开始，单步跟踪BIOS的执行。_
-_2. 在初始化位置0x7c00设置实地址断点,测试断点正常。_
-_3. 从0x7c00开始跟踪代码运行,将单步跟踪反汇编得到的代码与bootasm.S和 bootblock.asm进行比较。_
+>_为了熟悉使用qemu和gdb进行的调试工作，我们进行如下的小练习：_
+>
+>_1. 从CPU加电后执行的第一条指令开始，单步跟踪BIOS的执行。_  
+_2. 在初始化位置0x7c00设置实地址断点,测试断点正常。_  
+_3. 从0x7c00开始跟踪代码运行,将单步跟踪反汇编得到的代码与bootasm.S和 bootblock.asm进行比较。_  
 _4. 自己找一个bootloader或内核中的代码位置，设置断点并进行测试。_
 
-在lab1文件夹中直接输入make debug，则可以开启qemu的状态
+&emsp;&emsp;在lab1文件夹中直接输入make debug，则可以开启qemu的状态
 
-由于在degub文件中已经定义了target remote localhost:1234,则此处可以直接使用make debug指令来进行调试　　
-在输入了make degub之后，可以进行输入si进行单步调试　　
+&emsp;&emsp;由于在degub文件中已经定义了target remote localhost:1234,则此处可以直接使用make debug指令来进行调试　　
+在输入了make degub之后，可以进行输入si进行单步调试  
 效果如下：  
 ![](./picture/lab1_2_1.png)  
 按照要求在0x7c00位置设置断点，并且查看当前的20行代码　　
@@ -212,7 +217,7 @@ seta20.2:
 
 #### __3.2.3 练习3__
 
-_BIOS将通过读取硬盘主引导扇区到内存，并转跳到对应内存中的位置执行bootloader。请分析bootloader是如何完成从实模式进入保护模式的。_
+>_BIOS将通过读取硬盘主引导扇区到内存，并转跳到对应内存中的位置执行bootloader。请分析bootloader是如何完成从实模式进入保护模式的。_
 
 &emsp;&emsp;由于intel芯片的向下兼容的原因，UCORE构造出了A20 gate，通过它来控制是否进行“ *回绕* ”，当使用了80386这个cpu时，无论是实模式还是保护模式，我们都需要将A20使能，保证其可以正常使用从而不产生回绕；所以bootloader进行的过程主要有以下几个主要的过程：
 * 使能A20;
@@ -224,7 +229,7 @@ _BIOS将通过读取硬盘主引导扇区到内存，并转跳到对应内存中
 
 接下来分析bootloader 进入保护模式的过程。
 
-从`%cs=0 $pc=0x7c00`，进入后
+从 %cs=0 $pc=0x7c00，进入后
 
 首先清理环境：包括将flag置0和将段寄存器置0
 ```s
@@ -257,7 +262,7 @@ _BIOS将通过读取硬盘主引导扇区到内存，并转跳到对应内存中
 	    outb %al, $0x60     # 
 ```
 
-&emsp;&emsp;初始化GDT表：一个简单的GDT表和其描述符已经静态储存在引导区中，载入即可，GDT(global description table)，即将全局描述符表加载到内存中，[GDTR](https://en.wikibooks.org/wiki/X86_Assembly/Global_Descriptor_Table),
+&emsp;&emsp;初始化GDT表：一个简单的GDT表和其描述符已经静态储存在引导区中，载入即可，GDT(global description table)，即将全局描述符表加载到内存中，点击查看更多[**GDTR**](https://en.wikibooks.org/wiki/X86_Assembly/Global_Descriptor_Table)的信息
 ```s
 	    lgdt gdtdesc
 ```
@@ -298,13 +303,13 @@ gdtdesc:
 ```
 ### __练习4__
 
-_通过阅读bootmain.c，了解bootloader如何加载ELF文件。通过分析源代码和通过qemu来运行并调试bootloader&OS，_
-
-_bootloader如何读取硬盘扇区的？_
+>_通过阅读bootmain.c，了解bootloader如何加载ELF文件。通过分析源代码和通过qemu来运行并调试bootloader&OS，_
+>
+>_bootloader如何读取硬盘扇区的？_
 _bootloader是如何加载ELF格式的OS？_
 _分析bootloader加载ELF格式的OS的过程。_
 
-首先看readsect函数，
+&emsp;&emsp;首先看readsect函数，
 `readsect`从设备的第secno扇区读取数据到dst位置
 ```c
 	static void
@@ -444,13 +449,13 @@ for(i = 0; i < STACKFRAME_DEPTH && ebp != 0; i++){
 经过对比，和实验题目中给出的输出是一致的。
 
 ### 实验6
-_请完成编码工作和回答如下问题：_
-
-_1. 中断描述符表（也可简称为保护模式下的中断向量表）中一个表项占多少字节？其中哪几位代表中断处理代码的入口？_
-
-_2. 请编程完善kern/trap/trap.c中对中断向量表进行初始化的函数_idt_init。在idt_init函数中，依次对所有中断入口进行初始化。使用mmu.h中的SETGATE宏，填充idt数组内容。每个中断的入口由tools/vectors.c生成，使用trap.c中声明的vectors数组即可。
-
-_3. 请编程完善trap.c中的中断处理函数trap，在对时钟中断进行处理的部分填写trap函数中处理时钟中断的部分，使操作系统每遇到100次时钟中断后，调用print_ticks子程序，向屏幕上打印一行文字”100 ticks”。_
+>_请完成编码工作和回答如下问题：_
+>
+>_1. 中断描述符表（也可简称为保护模式下的中断向量表）中一个表项占多少字节？其中哪几位代表中断处理代码的入口？_
+>
+>_2. 请编程完善kern/trap/trap.c中对中断向量表进行初始化的函数_idt_init。在idt_init函数中，依次对所有中断入口进行初始化。使用mmu.h中的SETGATE宏，填充idt数组内容。每个中断的入口由tools/vectors.c生成，使用trap.c中声明的vectors数组即可。
+>
+>_3. 请编程完善trap.c中的中断处理函数trap，在对时钟中断进行处理的部分填写trap函数中处理时钟中断的部分，使操作系统每遇到100次时钟中断后，调用print_ticks子程序，向屏幕上打印一行文字”100 ticks”。_
 
 - 6.1 中断描述符表一个表项占8字节。其中0-15位和48-63位分别是offset偏移量的低16位和高16位。16-31位是段选择子，通过段选择子来获得基地址，加上偏移量即可获得终端处理程序的入口地址。  
 课本中的图片：  
@@ -491,9 +496,8 @@ if(ticks == TICK_NUM)
 }
 break;
 ```
-## 实验感想
-&emsp;&emsp;运行qemu，了解了gdb动态调试,使用qemu以及bootloader启动过程。  
-
+## __四、实验感想__
+&emsp;&emsp;通过这个实验，我运行了qemu，了解了gdb动态调试,使用qemu以及bootloader启动过程。  
 &emsp;&emsp;也复习了分段机制，ELF文件格式，中断，堆栈，等等相关知识，通过了实践，让我对这一部分内容有了更加深刻的理解。实验难度还是比较大的，需要通过阅读大量的给出的文档，才能对整个实验有一定的初步了解，并且，里边涉及的大量的汇编的代码，makefile文件，要读懂的话需要花费大量的精力与时间。
 
 

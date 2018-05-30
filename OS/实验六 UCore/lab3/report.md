@@ -1,5 +1,11 @@
 # __UCORE lab3 虚拟内存管理__
 
+&emsp;&emsp;`根据ucore实验报告要求，本实验报告采用markdown格式，在转化为pdf时，其中的网络链接与文本格式均相对于原文出现一定程度的改变，请查看markdown格式实验报告Github链接：`  
+
+[Ucore 实验报告Github](https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore)  
+[查看更多OS实验报告](https://github.com/HanlongLiao/Course/tree/master/OS)
+
+
 &emsp;&emsp;做完实验二后，可以了解并掌握物理内存管理中的连续空间分配算法的具体实现以及如何建立二级页表。本次实验是在实验二的基础上，借助于页表机制和实验一中涉及的中断异常处理机制，完成Page
 Fault异常处理和FIFO页替换算法的实现。实验原理最大的区别是在设计了如何在磁盘上缓存内存页，从而能够支持虚存管理，提供一个比实际物理内存空间“更大”的虚拟内存空间给系统使用。
 
@@ -70,7 +76,7 @@ Fault异常处理和FIFO页替换算法的实现，结合盘提供的缓存空�
 >_给未被映射的地址映射上物理页(需要编程)_   
   _完成 do_pgfault（mm/vmm.c）函数，给未被映射的地址映射上物理页。设置访问权限的时候需要参考页面所在VMA的权限，同时需要注意映射物理页时需要操作内存控制结构所制定的页表，而不是内核的页表。_
 
-&emsp;&emsp;do_pgfault函数是完成页错误异常处理的主要函数，他根据从CPU的控制寄存器CR2中获取的页错误异常的虚拟地址，以及根据error code的错误类型来查找次虚拟地址是否在某个VMA(VMA在UCORE中定义请查看[**VMA定义**]())的地址范围内，并且是否满足正确的读写权限，如果在此范围内并且权限也正确，就认为这是一次合法访问，但没有建立虚实对应关系，所以需要分配一个空闲的内存页，并修改页表完成虚地址到物理地址的映射，刷新TLB，然后调用iret中断，返回并重新执行。如果该虚地址不在某VMA范围内，这认为是一个非法访问，下列是内存的页与物理块的对应图例（mm_struct在UCORE中的定义请查看[**mm_struct定义**](./   )）：  
+&emsp;&emsp;do_pgfault函数是完成页错误异常处理的主要函数，他根据从CPU的控制寄存器CR2中获取的页错误异常的虚拟地址，以及根据error code的错误类型来查找次虚拟地址是否在某个VMA(VMA在UCORE中定义请查看[**VMA定义**]())的地址范围内，并且是否满足正确的读写权限，如果在此范围内并且权限也正确，就认为这是一次合法访问，但没有建立虚实对应关系，所以需要分配一个空闲的内存页，并修改页表完成虚地址到物理地址的映射，刷新TLB，然后调用iret中断，返回并重新执行。如果该虚地址不在某VMA范围内，这认为是一个非法访问，下列是内存的页与物理块的对应图例（mm_struct在UCORE中的定义请查看[**mm_struct定义**](./picture/lab3_mm_struct.md )）：  
 
 ![](./picture/lab3_1_1.png)
 
@@ -129,7 +135,7 @@ if (0 == *ptep) {
 * 如何设计数据结构以支持页替换算法？
 * 如何完成页的换入换出操作？
 
-&emsp;&emsp;实验3仅仅只是实现了简单的页面替换,其实并没有实现一个真正的内存页面替换的功能，更多细节请查看（[页面替换机制](./picture/lab3_2_page_swap.md)）
+&emsp;&emsp;实验3仅仅只是实现了简单的页面替换,其实并没有实现一个真正的内存页面替换的功能，更多细节请查看（[**页面替换机制**](./picture/lab3_2_page_swap.md)）
 
 &emsp;&emsp;根据练习1，当页错误异常发生时，有可能是因为页面保存在swap区或者磁盘文件上造成的，所以我们需要利用页面替换算法解决这个问题。  
 &emsp;&emsp;页面替换主要分为两个方面，页面换出和页面换入。 
@@ -176,7 +182,7 @@ else
 - __fifo_map_swappable()__
 
  &emsp;&emsp;首先是_fifo_map_swappable，可用于建立页访问属性和关系，比如访问时间的先后顺序。
- 查看相应的[注释](./picture/lab3_fifo_map_swappable.md)
+ 查看相应的[**注释**](./picture/lab3_fifo_map_swappable.md)
  完善的代码如下：  
  ```C
  /*
@@ -204,7 +210,7 @@ _fifo_map_swappable(struct mm_struct *mm, uintptr_t addr, struct Page *page, int
 
 &emsp;&emsp;_fifo_swap_out_victim用于实现挑选出要换出的页。
 
-根据[注释](./picture/lab3_fifo_swap_victim.md)补充代码：
+根据[**注释**](./picture/lab3_fifo_swap_victim.md)补充代码：
 
 ```C
 static int
