@@ -357,10 +357,18 @@ default_free_pages(struct Page *base, size_t n) {
 >实现寻找虚拟地址对应的页表项(需要编程)  
   通过设置页表和对应的页表项，可建立虚拟内存地址和物理内存地址的对应关系。其中的get_pte函数是设置页表项缓解中的一个重要步骤。此函数找到一个虚地址对应的二级页表项的内核虚地址，如果此二级页表项不存在，则分配一个包含此项的二级页表。
 
-首先，查看相关的定义
+&emsp;&emsp;对于UCORE中具体的分页机制和页表项与物理内存块的对应关系的详细内容，请查看[**UCORE中二级页表的建立释放及其物理映射**](./picturefig/lab2_2_Page.md)  
+
+&emsp;&emsp;get_pte函数的调用关系可以通过练习指导书中查看到，此时获取到的物理内存都是在近0x00000000处，因为也就在内核占用的物理内存区域，因为获取到了物理内存之后可以直接通过page2kva(pg_tbl)来获取到它的linear address；我们知道在page table entry中存储的是physical address | flags，其实page directory entry中存储的也是physical address | flags只不过page directory entry中的physical address是某一个page table的physical address;
+对于page table来说，由于这些page table不仅内核会访问，而且用户态也会访问；因此我们就需要将page directory中的page directory entry中添加标志位添加PTE_U字段；
+
+&emsp;&emsp;先从page directory中找到virtual address对应的page directory entry，如果这个page directory entry并不存在(即其PTE_P位没有使能，当前page directory entry不存在)那么我们就需要从物理内存中拿出一个page来当page table，并将这个page table与page directory entry相关联(关联的方法即使page directory entry中存储该page table的物理地址及相应的标志位)；
+一旦获取到了这个page table，那么我们就可以通过virtual address与page directory+page table的关系来获取到该virtual address与page directory+page table之间的关系(其实这种对应关系是很简单的，一个virtual address的前10位对应page directory entry index，中间10位对应page table entry index，最后12位对应0-4096的单个page偏移，这样就可以保证了一个物理page偏移对应一个逻辑page偏移)；
+
+完成本实验，首先查看相关定义
 ```C
 #define PGSIZE 4096 // bytes mapped by a page
-```
+``` 
 - PDX(la)： 返回虚拟地址la的页目录索引
 - KADDR(pa): 返回物理地址pa相关的内核虚拟地址
 - set_page_ref(page,1): 设置此页被引用一次
@@ -370,39 +378,12 @@ default_free_pages(struct Page *base, size_t n) {
 - PTE_P 0x001 表示物理内存页存在
 - PTE_W 0x002 表示物理内存页内容可写
 - PTE_U 0x004 表示可以读取对应地址的物理内存页内容
-根据注释修改代码  
+查看相求的[注释](./picturefig/lab2_2_anno_Page.md) 
+,根据相应的注释与定义，填写代码。
 ```C
-//get_pte - get pte and return the kernel virtual address of this pte for la
-//        - if the PT contians this pte didn't exist, alloc a page for PT
-// parameter:
-//  pgdir:  the kernel virtual base address of PDT
-//  la:     the linear address need to map
-//  create: a logical value to decide if alloc a page for PT
-// return vaule: the kernel virtual address of this pte
+
 pte_t *
 get_pte(pde_t *pgdir, uintptr_t la, bool create) {
-    /* LAB2 EXERCISE 2: YOUR CODE
-     *
-     * If you need to visit a physical address, please use KADDR()
-     * please read pmm.h for useful macros
-     *
-     * Maybe you want help comment, BELOW comments can help you finish the code
-     *
-     * Some Useful MACROs and DEFINEs, you can use them in below implementation.
-     * MACROs or Functions:
-     *   PDX(la) = the index of page directory entry of VIRTUAL ADDRESS la.
-     *   KADDR(pa) : takes a physical address and returns the corresponding kernel virtual address.
-     *   set_page_ref(page,1) : means the page be referenced by one time
-     *   page2pa(page): get the physical address of memory which this (struct Page *) page  manages
-     *   struct Page * alloc_page() : allocation a page
-     *   memset(void *s, char c, size_t n) : sets the first n bytes of the memory area pointed by s
-     *                                       to the specified value c.
-     * DEFINEs:
-     *   PTE_P           0x001                   // page table/directory entry flags bit : Present
-     *   PTE_W           0x002                   // page table/directory entry flags bit : Writeable
-     *   PTE_U           0x004                   // page table/directory entry flags bit : User can access
-     */
-    //typedef uintptr_t pde_t;
     pde_t *pdep = &pgdir[PDX(la)];  // (1)获取页表
     if (!(*pdep & PTE_P))             // (2)假设页目录项不存在
     {      
@@ -427,62 +408,14 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
 >释放某虚拟地址所在的页并取消对应的二级页表项的映射（需要编程） 
   当释放一个包含某虚地址的物理内存页时，需要让对应此物理内存页的管理数据结构Page做相关的清除处理，使得次物理内存页成为空闲；另外还需把表示虚地址与物理地址对应关系的二级页表项清除
 
-查看代码中的相关定义  
-```C
-struct Page *alloc_pages(size_n){
-    void free_pages(struct Page *base, size_t n);
-    size_t nr_free_pages(void);
-}
+&emsp;&emsp;练习3相对要简单一些。
 
-#define alloc_page() alloc_pages(1)
-#define free_page(page) free_pages(page, 10)
- // invalidate a TLB entry, but only if the the page tables being
- //edited are the ones currently in use by the processor.
- void tlb_invalidate(pde_t *pgdir, uintptr_t la){
-     if(rcr3() == PADDR(pgdir)){
-         invlpg((void *) la);
-     }
- }
-
- static inline int page_ref_dec(struct Page *page){
-     page->ref -= 1;
-     return page->ref;
- }
-
- static inline struct Page* pte2page(pte_t pte){
-     if (!(pte_t pte)){
-         panic("pte2page called with invalid pte");
-     }
-     return pa2page(PTE_ADDR(pte));
- }
-```
-- struct Page *page pte2page(*ptep):得到页表项对应的那一页
-- free_page : 释放一页
-- page_ref_dec(page) : 减少该页的引用次数，返回剩下引用次数
-- tlb_invalidate(pde_t * pgdir, uintptr_t la) : 当修改的页表-是进程正在使用的那些页表，使之无效 
+&emsp;&emsp;查看代码中的相关[**定义**](./picturefig/lab2_3_page.md) ,查看相关[**注释**](./picturefig/lab2_3_page_anno.md) ,填写代码如下：
 
 ```C
-//page_remove_pte - free an Page sturct which is related linear address la
-//                - and clean(invalidate) pte which is related linear address la
-//note: PT is changed, so the TLB need to be invalidate 
 static inline void
 page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
-    /* LAB2 EXERCISE 3: YOUR CODE
-     *
-     * Please check if ptep is valid, and tlb must be manually updated if mapping is updated
-     *
-     * Maybe you want help comment, BELOW comments can help you finish the code
-     *
-     * Some Useful MACROs and DEFINEs, you can use them in below implementation.
-     * MACROs or Functions:
-     *   struct Page *page pte2page(*ptep): get the according page from the value of a ptep
-     *   free_page : free a page
-     *   page_ref_dec(page) : decrease page->ref. NOTICE: ff page->ref == 0 , then this page should be free.
-     *   tlb_invalidate(pde_t *pgdir, uintptr_t la) : Invalidate a TLB entry, but only if the page tables being
-     *                        edited are the ones currently in use by the processor.
-     * DEFINEs:
-     *   PTE_P           0x001                   // page table/directory entry flags bit : Present
-     */
+    
     if (*ptep & PTE_P)                 //(1) check if this page table entry is present
     {      //假如页表项存在
         struct Page *page = pte2page(*ptep);//(2)找到页表项的那一页信息
@@ -497,66 +430,11 @@ page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
 }
 ``` 
 
-## __实验结果__
+## __四、实验结果__
 ![](./picturefig/lab2_4_1.png)
 ![](./picturefig/lab2_4_2.png)
 ![](./picturefig/lab2_4_3.png)
 
-## 收获
-  通过本次实验，我了解如何发现系统中的物理内存，了解如何建立对物理内存的初步管理，了解了页表的相关的操作，即如何建立页表来实现虚拟内存到物理内存之间的映射，对段页式内存管理机制有一个比较全面的了解。基本上在试验中学习，根据注释以及函数定义可以动手完成一个简单的物理内存管理系统。完成后发现运行错误，通过一遍一遍的核对代码，查阅资料，比对正确答案，终于得以修改，成功运行。
+## __五、感想__
 
-## __系统启动前做的工作__
-1.在bootloader中，完成了对物理内存资源的探测工作（bootasm.S）
-
-OS需要了解整个计算机系统中的物理内存如何分布的，哪些可用，哪些不可用。其基本方法是通过BIOS中断调用来帮助完成的。其中BIOS中断调用必须在实模式下进行，所以在bootloader进入保护模式前完成这部分工作。具体的流程是：通过BIOS中断获取内存可调用参数为e820h的INT 15H BIOS中断，之后通过系统内存映射地址描述符（Address Range Descriptor）格式来表示系统物理内存布局，并且该地址描述符保存在物理地址0x8000
-保存地址范围描述符结构的缓冲区：
-```c
-struct e820map {
-                  int nr_map;
-                  struct {
-                                    long long addr;
-                                    long long size;
-                                    long type;
-                  } map[E820MAX];
-};
-```
-下面是填充该结构体数据：
-```s
-probe_memory:
-    movl $0, 0x8000      #对0x8000处的32位单元清零,即给位于0x8000处的struct e820map的成员变量nr_map清零
-    xorl %ebx, %ebx      #ebx如果是第一次调用或内存区域扫描完毕，则为0
-    movw $0x8004, %di 　　#表示设置调用INT 15h BIOS中断后，BIOS返回的映射地址map描述符的起始地址
-start_probe:
-    movl $0xE820, %eax  　　#INT 15的中断调用参数；
-    movl $20, %ecx         #设置地址范围描述符的大小为20字节，其大小等于struct e820map的成员变量map的大小
-    movl $SMAP, %edx    　　#设置edx为534D4150h (即4个ASCII字符“SMAP”)
-    int $0x15              #调用int 0x15中断，要求BIOS返回一个用地址范围描述符表示的内存段信息，递增di的值（20的倍数），让BIOS帮我们查找出一个个的内存布局entry，并放入到一个保存地址范围描述符结构的缓冲区的map中
-    jnc cont               #如果eflags的CF位为0，则表示还有内存段需要探测
-    movw $12345, 0x8000 　　#探测有问题，结束探测
-    jmp finish_probe
-cont:
-    addw $20, %di            #eflags的CF位为0，还有内存段需要检测，设置下一个BIOS返回的映射地址描述符的起始地址
-    incl 0x8000              #递增struct e820map的成员变量nr_map
-    cmpl $0, %ebx            #如果INT0x15返回的ebx为零，表示探测结束，否则继续探测
-    jnz start_probe
-finish_probe:
-```
-## __以页为单位管理物理内存：__
-每个物理页可以用一个 Page数据结构来表示。Page结构也占空间，Page结构在设计时须尽可能小，以减少对内存的占用。具体结构的定义在kern/mm/memlayout.h中。
-```c
-struct Page {
-    int ref;        // page frame's reference counter
-    uint32_t flags; // array of flags that describe the status of the page frame
-    unsigned int property;// the num of free block, used in first fit pm manager
-    list_entry_t page_link;// free list link
-};
-```
-ref：表示这页被页表引用次数，在某页表中有个页表项设置了该页到Page管理的页框的映射，则ref加1，若也表想取消映射，ref减1
-
-flags：表示页框状态（有两bit来表示这状态，PG_reserved：0表示该页框被内核占用或不能使用，PG_property:1表示可用空闲页框，该名字可以根据不同的分配算法而不同）
-
-设置的方法有set_bit（int nr，long*addr）将addr第nr置1，test_bit被测试位为0，返回0，为1，返回1。
-
-property：记录某连续空间空闲页的个数，该变量只有在连续内存空间地址的最小页（头一页）才会被使用，连续内存其余空闲页利用这个页的该变量也可知自己所处空闲块中空闲页个数。
-
-page_link：是便于把多个连续内存空闲块链接在一起的双向链接指针。连续内存空闲块利用该也的page_link来链接比他地址大和小的其他连续空
+&emsp;&emsp;通过本次实验，主要对操纵系统中的段式存储与页式存储有了新的认识，原来只是停留在了课本上的理论只是，经过了在UCORE中实践之后，对这部分内容有了更加深刻的理解，特别是虚拟页与物理块的对应关系的建立与释放的内容，内存页的firstfit分配算法等。实验过程中，参照着网络上的一些博文与实验参考书，基本能够读懂需要完成的要求的相关代码,收益良多。
