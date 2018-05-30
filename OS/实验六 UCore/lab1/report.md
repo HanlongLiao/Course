@@ -2,9 +2,10 @@
 
 &emsp;&emsp;`根据ucore实验报告要求，本实验报告采用markdown格式，在转化为pdf时，其中的网络链接与文本格式均相对于原文出现一定程度的改变，请查看markdown格式实验报告Github链接：`  
 
-[Ucore 实验报告Github](https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore)  
-[查看更多OS实验报告](https://github.com/HanlongLiao/Course/tree/master/OS)
+- Github实验报告链接  https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore  
+- 查看更多OS实验报告  
 
+  https://github.com/HanlongLiao/Course/tree/master/OS
 
 ## __一、实验目的__
 
@@ -301,7 +302,7 @@ gdtdesc:
 ```s
 	    call bootmain
 ```
-### __练习4__
+####__3.2.4 练习4__
 
 >_通过阅读bootmain.c，了解bootloader如何加载ELF文件。通过分析源代码和通过qemu来运行并调试bootloader&OS，_
 >
@@ -399,7 +400,7 @@ readseg简单包装了readsect，可以从设备读取任意长度的内容。
 
 完成了练习4之后，整个kernel的加载并将控制权转移的过程结束。
 
-### 练习5 ：实现函数调用堆栈跟踪函数
+####__3.2.5 练习5 __
 
 
 _我们需要在lab1中完成kdebug.c中函数print_stackframe的实现，可以通过函数print_stackframe来跟踪函数调用堆栈中记录的返回地址。在如果能够正确实现此函数，可在lab1中执行 “make qemu”后，在qemu模拟器中得到类似如下：_
@@ -448,7 +449,8 @@ for(i = 0; i < STACKFRAME_DEPTH && ebp != 0; i++){
 ![avatar](./picture/lab1_5_1.png)
 经过对比，和实验题目中给出的输出是一致的。
 
-### 实验6
+#### __3.2.6 实验6__
+
 >_请完成编码工作和回答如下问题：_
 >
 >_1. 中断描述符表（也可简称为保护模式下的中断向量表）中一个表项占多少字节？其中哪几位代表中断处理代码的入口？_

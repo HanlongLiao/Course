@@ -1,9 +1,13 @@
 # __UCORE lab2 物理内存管理__
 
+
 &emsp;&emsp;`根据ucore实验报告要求，本实验报告采用markdown格式，在转化为pdf时，其中的网络链接与文本格式均相对于原文出现一定程度的改变，请查看markdown格式实验报告Github链接：`  
 
-[Ucore 实验报告Github](https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore)  
-[查看更多OS实验报告](https://github.com/HanlongLiao/Course/tree/master/OS)
+- Github实验报告链接  https://github.com/HanlongLiao/Course/tree/master/OS/%E5%AE%9E%E9%AA%8C%E5%85%AD%20UCore  
+- 查看更多OS实验报告  
+
+  https://github.com/HanlongLiao/Course/tree/master/OS
+
 
 ## __一、实验目的__
 
@@ -173,7 +177,8 @@ _实验依赖于实验０，需要将实验１中已经填写的内容在本实�
 
 &emsp;&emsp;经过使用meld进行前后文件的对比，发现仅有kedebug.c和trap.c两个文件中缺失了部分代码，在进行补全之后，进行相关的实验。　　
 
-#### __3.2.1 练习１__
+#### __3.2.2 练习１__
+
 >_在实现first fit 内存分配算法的回收函数时，要考虑地址连续的空闲块之间的合并操作。提示:在建立空闲页块链表时，需要按照空闲页块起始地址来排序，形成一个有序的链表。可能会修改default_pmm.c中的default_init，default_init_memmap，default_alloc_pages， default_free_pages等相关函数。请仔细查看和理解default_pmm.c中的注释。_
 _请在实验报告中简要说明你的设计实现过程。_
 
@@ -216,12 +221,12 @@ free_list is used to record the free mem blocks. nr_free is the total number for
 
 注释里标的很清楚，不需要修改。
 - __default_init_memmap__  
- 
+
 &emsp;&emsp;default\_init\_memmap函数将根据每个物理页帧的情况来建立空闲页链表，且空闲页块应该是根据地址高低形成一个有序链表。
 
 &emsp;&emsp;首先查看[**注释**](./picturefig/lab2_default_init_memmap.md),
 根据注释查看变相关[**定义**](./picturefig/lab2_default_init_memmap相关定义.md)，并根据定义来修改代码：  
- 
+
 ```c
 static void
 default_init_memmap(struct Page *base, size_t n) {
@@ -374,7 +379,7 @@ default_free_pages(struct Page *base, size_t n) {
 完成本实验，首先查看相关定义
 ```C
 #define PGSIZE 4096 // bytes mapped by a page
-``` 
+```
 - PDX(la)： 返回虚拟地址la的页目录索引
 - KADDR(pa): 返回物理地址pa相关的内核虚拟地址
 - set_page_ref(page,1): 设置此页被引用一次
@@ -410,7 +415,8 @@ get_pte(pde_t *pgdir, uintptr_t la, bool create) {
 }
 ```
 
-## __练习3__
+####__3.2.4  练习3__
+
 >释放某虚拟地址所在的页并取消对应的二级页表项的映射（需要编程） 
   当释放一个包含某虚地址的物理内存页时，需要让对应此物理内存页的管理数据结构Page做相关的清除处理，使得次物理内存页成为空闲；另外还需把表示虚地址与物理地址对应关系的二级页表项清除
 
@@ -434,7 +440,7 @@ page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
     }
 
 }
-``` 
+```
 
 ## __四、实验结果__
 ![](./picturefig/lab2_4_1.png)
