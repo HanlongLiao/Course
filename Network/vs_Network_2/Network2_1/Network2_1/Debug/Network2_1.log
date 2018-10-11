@@ -1,0 +1,12 @@
+﻿  Winpacp_ex.cpp
+f:\workspace\vs_network_2\network2_1\network2_1\winpacp_ex.cpp(4): warning C4005: “HAVE_REMOTE”: 宏重定义
+  f:\workspace\vs_network_2\network2_1\network2_1\winpacp_ex.cpp(4): note: 命令行参数: 参见前面的“HAVE_REMOTE”定义
+f:\workspace\vs_network_2\network2_1\network2_1\winpacp_ex.cpp(209): warning C4018: “<”: 有符号/无符号不匹配
+f:\workspace\vs_network_2\network2_1\network2_1\winpacp_ex.cpp(200): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h(505): note: 参见“localtime”的声明
+f:\workspace\vs_network_2\network2_1\network2_1\winpacp_ex.cpp(379): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(346): note: 参见“strncpy”的声明
+f:\workspace\vs_network_2\network2_1\network2_1\winpacp_ex.cpp(380): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(346): note: 参见“strncpy”的声明
+  Network2_1.vcxproj -> F:\workspace\vs_Network_2\Network2_1\Debug\Network2_1.exe
+  Network2_1.vcxproj -> F:\workspace\vs_Network_2\Network2_1\Debug\Network2_1.pdb (Full PDB)

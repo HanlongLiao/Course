@@ -1,0 +1,5 @@
+﻿  client.cpp
+f:\workspace\vs_network_1\network_1_client\network_1_client\client.cpp(38): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1850): note: 参见“inet_addr”的声明
+  Network_1_client.vcxproj -> F:\workspace\vs_Network_1\Network_1_client\Debug\Network_1_client.exe
+  Network_1_client.vcxproj -> F:\workspace\vs_Network_1\Network_1_client\Debug\Network_1_client.pdb (Full PDB)
